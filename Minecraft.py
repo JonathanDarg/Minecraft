@@ -9,76 +9,82 @@ player = FirstPersonController()
 # Sky
 Sky()
 
-# Block types with PNG textures
+# Load textures
+grass_texture = load_texture('green_grass.png')
+grass_side_texture = load_texture('grass_side.png')  # not used in this version
+dirt_texture = load_texture('dirt.png')              # not used in this version
+stone_texture = load_texture('smooth_stone.png')
+brick_texture = load_texture('bricks.png')
+
+# Block types dictionary
 BLOCK_TYPES = {
-    'grass': {'color': color.white, 'texture': 'grass.png'},
-    'stone': {'color': color.white, 'texture': 'stone.png'},
-    'brick': {'color': color.white, 'texture': 'brick.png'}
+    'grass': {'texture': grass_texture},
+    'stone': {'texture': stone_texture},
+    'brick': {'texture': brick_texture}
 }
-current_block_type = 'grass'  # Default block type
+current_block_type = 'grass'
 
-# Create initial platform
+# List to hold block references
 boxes = []
-for i in range(20):
-    for j in range(20):
-        box = Button(
-            color=BLOCK_TYPES['grass']['color'],
-            model='cube',
-            position=(j, 0, i),
-            texture=BLOCK_TYPES['grass']['texture'],
-            parent=scene,
-            origin_y=0.5,
-            collider='box'
-        )
-        boxes.append(box)
 
+# Create a block at the given position with the selected type
+def create_block(position, block_type):
+    block = Button(
+        model='cube',
+        position=position,
+        texture=BLOCK_TYPES[block_type]['texture'],
+        color=color.white,
+        parent=scene,
+        origin_y=0.5,
+        collider='box'
+    )
+    return block
+
+# Create initial 20x20 grass platform
+for x in range(20):
+    for z in range(20):
+        block = create_block((x, 0, z), 'grass')
+        boxes.append(block)
+
+# Input handling
 def input(key):
     global current_block_type
-    
-    # Block selection
+
+    # Block selection keys
     if key == '1':
         current_block_type = 'grass'
     elif key == '2':
         current_block_type = 'stone'
     elif key == '3':
         current_block_type = 'brick'
-    
-    # Block placement/removal
-    for box in boxes:
-        if box.hovered:
+
+    # Place or remove blocks
+    for block in boxes:
+        if block.hovered:
             if key == 'left mouse down':
-                new = Button(
-                    color=BLOCK_TYPES[current_block_type]['color'],
-                    model='cube',
-                    position=box.position + mouse.normal,
-                    texture=BLOCK_TYPES[current_block_type]['texture'],
-                    parent=scene,
-                    origin_y=0.5,
-                    collider='box'
-                )
-                boxes.append(new)
+                new_block = create_block(block.position + mouse.normal, current_block_type)
+                boxes.append(new_block)
             if key == 'right mouse down':
-                if box in boxes:
-                    boxes.remove(box)
-                    destroy(box)
-    
-    # Exit game
+                boxes.remove(block)
+                destroy(block)
+
     if key == 'escape':
         quit()
 
-# Current block indicator - centered at bottom
+# Block type indicator UI
 block_indicator = Text(
     text=f"Current Block: {current_block_type}",
-    position=(0, -0.45),    # Centered at bottom
-    origin=(0, 0),          # Center origin
-    scale=1.5,              # Slightly larger text
+    position=(0, -0.45),
+    origin=(0, 0),
+    scale=1.5,
     color=color.white,
-    background=True,         # Adds background
-    background_color=color.black66
+    background=True,
+    background_color=color.rgba(0, 0, 0, 180)
 )
 
+# Update UI text dynamically
 def update():
-    # Update the current block indicator
     block_indicator.text = f"Current Block: {current_block_type}"
 
+# Run the app
 app.run()
